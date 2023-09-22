@@ -81,7 +81,7 @@ VALUES
     ('CPSC449', '02', 'Database Systems', 'Computer Science', TRUE, 30, 1, 15, 0, '101'),
     ('MATH101', '01', 'Introduction to Calculus', 'Mathematics', TRUE, 25, 2, 15, 0, '102'),
     ('MATH101', '02', 'Introduction to Calculus', 'Mathematics', TRUE, 25, 25, 15, 3, '102'),
-    ('ENG205', '01', 'American Literature', 'English', TRUE, 35, 3, 15, 0, '100'),
+    ('ENGL205', '01', 'American Literature', 'English', TRUE, 35, 3, 15, 0, '100'),
     ('PHYS202', '01', 'Physics II', 'Physics', TRUE, 40, 2, 15, 0, '101'),
     ('PHYS202', '02', 'Physics II', 'Physics', TRUE, 40, 40, 15, 3, '101'),
     ('CHEM101', '01', 'Introduction to Chemistry', 'Chemistry', TRUE, 20, 2, 15, 0, '102');
@@ -93,25 +93,25 @@ VALUES
     ('11111111', 'MATH101', '01'),
     
     ('22222222', 'CPSC449', '02'),
-    ('22222222', 'ENG205', '01'),
+    ('22222222', 'ENGL205', '01'),
     
     ('33333333', 'MATH101', '01'),
     ('33333333', 'PHYS202', '01'),
     
-    ('444444444', 'ENG205', '01'),
+    ('444444444', 'ENGL205', '01'),
     ('444444444', 'CHEM101', '01'),
     
     ('555555555', 'PHYS202', '01'),
     ('555555555', 'CPSC449', '01'),
     
     ('666666666', 'CHEM101', '01'),
-    ('666666666', 'ENG205', '01');
+    ('666666666', 'ENGL205', '01');
 
 -- Add students to the waitlist of classes they are not enrolled in
 -- Each student is added to the waitlist of a class they are not enrolled in
 -- The timestamp is set to the current date and time for simplicity
 
--- Sam is added to the waitlist of 'ENG205' section '01' on a specific date
+-- Sam is added to the waitlist of 'ENGL205' section '01' on a specific date
 INSERT INTO Waitlist (w_student_id, w_class_code, w_section_number, timestamp)
 VALUES
     ('11111111', 'MATH101', '02', '2023-09-15 10:00:00');
@@ -154,10 +154,10 @@ INSERT INTO Dropped (d_student_id, d_class_code, d_section_number)
 VALUES
     ('22222222', 'CPSC449', '01');
 
--- Sandra drops the class 'ENG205' section '01'
+-- Sandra drops the class 'ENGL205' section '01'
 INSERT INTO Dropped (d_student_id, d_class_code, d_section_number)
 VALUES
-    ('33333333', 'ENG205', '01');
+    ('33333333', 'ENGL205', '01');
 
 -- Steve drops the class 'MATH101' section '01'
 INSERT INTO Dropped (d_student_id, d_class_code, d_section_number)
