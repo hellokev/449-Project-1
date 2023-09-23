@@ -141,4 +141,45 @@ def get_available_classes(student_id: str, class_code:str, section_number:str, d
         """, (student_id,))
 
         return {"detail": "Class enrollment full, Student added to waitlist"}
+
+# Query 3 - Drop Class
+@app.get("/student/drop_class")
+def drop_class(student_id: str, class_code:str, section_number:str, db: sqlite3.Connection = Depends(get_db)):
+    # Check to see if student already enrolled
+    student_is_enrolled = db.execute("""
+        SELECT *
+        FROM Enroll
+        WHERE e_student_id=? 
+        AND e_class_code=? 
+        AND e_section_number=?
+    """, (student_id, class_code, section_number)).fetchall()
+    # If they are enrolled, unroll them
+    if student_is_enrolled:
+        db.execute("""
+        DELETE FROM Enroll 
+        Where e_student_id="?"
+        AND e_class_code == "?"
+        AND e_section_number == "?"
+        """, (student_id, class_code, section_number)).fetchall()
+
+        # Decrement number of students enrolled
+        db.execute("""
+        UPDATE Class
+        SET current_enrollment = current_enrollment - 1
+        Where class_code='?'
+        AND section_number='?'
+        AND current_enrollment > 0
+        """, (class_code, section_number))
+
+        # Add them to drop list
+        db.execute("""
+        INSERT INTO Dropped (d_student_id, d_class_code, d_section_number)
+        VALUES('?', '?', '?');
+        """, (student_id, class_code, section_number))
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Student is not enrolled."
+        )   
+
+    
     
