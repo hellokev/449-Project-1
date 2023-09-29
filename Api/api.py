@@ -285,7 +285,7 @@ def instructor_get_students_that_dropped_class(instructor_id: str,  class_code:s
     return {"dropped": dropped}
 
 # Task 6: Instructor can drop students administratively (e.g. if they do not show up to class)
-# Example: http://localhost:5000/instructor/drop_student/student/11111111/class/CPSC449/section/01
+# Example: DELETE http://localhost:5000/instructor/drop_student/student/11111111/class/CPSC449/section/01
 @app.delete("/instructor/drop_student/student/{student_id}/class/{class_code}/section/{section_number}")
 def instructor_drop_student_from_class(student_id: str, class_code:str, section_number:str, db: sqlite3.Connection = Depends(get_db)):
 
@@ -375,7 +375,7 @@ def registrar_create_new_class(new_class: Class, request: Request, db: sqlite3.C
 
 
 # Task 8: Registrar can remove existing sections
-# Example: DELETE http://localhost:5000/registrar/remove_section/?class_code=CPSC449&section_number=04
+# Example: DELETE http://localhost:5000/registrar/remove_section/class/CPSC449/section/04
 @app.delete("/registrar/class/code/{class_code}/section/{section_number}")
 def registrar_remove_section(class_code: str, section_number: str, db: sqlite3.Connection = Depends(get_db)):
     # Check to see if section exists 
@@ -588,7 +588,7 @@ def student_remove_self_from_class_waitlist(student_id: str, class_code: str, se
     
 
 # Task 13: Instructor can view the current waiting list for their course
-# Example: GET http://localhost:5000/instructor/waitlist_for_class/instructor/{instructor_id}/class/{class_code}/section/{section_number}
+# Example: GET http://localhost:5000/instructor/waitlist_for_class/instructor/100/class/CPSC449/section/01
 @app.get("/instructor/waitlist_for_class/instructor/{instructor_id}/class/{class_code}/section/{section_number}")
 def instructor_get_waitlist_for_class(instructor_id: str, class_code: str, section_number: str, db: sqlite3.Connection = Depends(get_db)):
 
