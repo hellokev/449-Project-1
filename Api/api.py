@@ -70,7 +70,7 @@ def get_student_details(student_id: str, db: sqlite3.Connection = Depends(get_db
 
     return {"student": student_details}
 
-# Example: GET http://localhost:5000/student/student_enrollment
+# Example: GET http://localhost:5000/student_enrollment/11111111
 @app.get("/student_enrollment/{student_id}")
 def get_student_enrollment(student_id: str, db: sqlite3.Connection = Depends(get_db)):
 
@@ -82,6 +82,17 @@ def get_student_enrollment(student_id: str, db: sqlite3.Connection = Depends(get
     """, (student_id,)).fetchall()
 
     return {"enrollment": student_enrollment}
+
+@app.get("/waitlist")
+def get_waitlist(db: sqlite3.Connection = Depends(get_db)):
+
+    # Check to see if student on waitlist
+    waitlist = db.execute("""
+                SELECT *
+                FROM Waitlist
+            """).fetchall()
+    
+    return {"waitlist": waitlist}
 
 
 # ---------------------- Tasks -----------------------------
@@ -113,7 +124,7 @@ def student_enroll_self_in_class(student_id: str, class_code:str, section_number
 
     if student_is_enrolled:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Student already enrolled"
+            status_code=status.HTTP_409_CONFLICT, detail="Student already enrolled"
         )
     
     # Check to see if student already on waitlist
@@ -127,7 +138,7 @@ def student_enroll_self_in_class(student_id: str, class_code:str, section_number
 
     if student_on_waitlist:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Student already on waitlist"
+            status_code=status.HTTP_409_CONFLICT, detail="Student already on waitlist"
         )
     
     # Get class information
@@ -171,7 +182,7 @@ def student_enroll_self_in_class(student_id: str, class_code:str, section_number
         # Student reached the max number of classes they can be waitlisted for
         if student_details['num_waitlist'] >= 3:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="Class enrollment full and student has exceeded their max number of waitlisted classes"
+                status_code=status.HTTP_409_CONFLICT, detail="Class enrollment full and student has exceeded their max number of waitlisted classes"
             )   
         
         # Add student the waitlist
@@ -246,7 +257,7 @@ def student_drop_self_from_class(student_id: str, class_code:str, section_number
         return {"detail": "Class successfully dropped."}
     else:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot drop class, student is not enrolled."
+            status_code=status.HTTP_404_NOT_FOUND, detail="Student is not enrolled."
         )   
 
     
@@ -329,7 +340,7 @@ def instructor_drop_student_from_class(student_id: str, class_code:str, section_
         return {"detail": "Student successfully dropped."}
     else:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot drop class, student is not enrolled."
+            status_code=status.HTTP_404_NOT_FOUND, detail="Student is not enrolled."
         )   
     
 # Task 7: Registrar can add new classes and sections
@@ -360,7 +371,7 @@ def registrar_create_new_class(new_class: Class, request: Request, db: sqlite3.C
     
     if class_exists:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Class already exists."
+            status_code=status.HTTP_409_CONFLICT, detail="Class already exists."
         )   
 
     db.execute("""
@@ -375,8 +386,8 @@ def registrar_create_new_class(new_class: Class, request: Request, db: sqlite3.C
 
 
 # Task 8: Registrar can remove existing sections
-# Example: DELETE http://localhost:5000/registrar/remove_section/class/CPSC449/section/04
-@app.delete("/registrar/class/code/{class_code}/section/{section_number}")
+# Example: DELETE http://localhost:5000/registrar/remove_class/code/{class_code}/section/{section_number}
+@app.delete("/registrar/remove_class/code/{class_code}/section/{section_number}")
 def registrar_remove_section(class_code: str, section_number: str, db: sqlite3.Connection = Depends(get_db)):
     # Check to see if section exists 
     section_exists = db.execute("""
@@ -419,7 +430,7 @@ def registrar_remove_section(class_code: str, section_number: str, db: sqlite3.C
         return {"detail": "Section successfully removed."}
     else:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Section does not exist."
+            status_code=status.HTTP_404_NOT_FOUND, detail="Section does not exist."
         )   
     
 # Task 9: Registrar can change instructor for a section
@@ -449,7 +460,7 @@ def registrar_change_instructor_for_class(class_code: str, section_number: str, 
     
     if not instructor_exists:
         raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST, detail="Instructor does not exist."
+                    status_code=status.HTTP_404_NOT_FOUND, detail="Instructor does not exist."
                 )   
 
     # Change instructor for section
@@ -491,7 +502,7 @@ def registrar_freeze_enrollment_for_class(class_code: str, section_number: str, 
     
     else:
         raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST, detail="Section does not exist."
+                    status_code=status.HTTP_404_NOT_FOUND, detail="Section does not exist."
                 )   
     
     
@@ -531,7 +542,7 @@ def student_get_waitlist_position_for_class(student_id: str, class_code: str, se
     
     else:
         raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST, detail="Student not on waitlist."
+                    status_code=status.HTTP_404_NOT_FOUND, detail="Student not on waitlist."
                 )   
 
 def get_position_on_waitlist(dict, student_id):
@@ -583,7 +594,7 @@ def student_remove_self_from_class_waitlist(student_id: str, class_code: str, se
     
     else:
         raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST, detail="Student not on waitlist."
+                    status_code=status.HTTP_404_NOT_FOUND, detail="Student not on waitlist."
                 )   
     
 
@@ -602,7 +613,7 @@ def instructor_get_waitlist_for_class(instructor_id: str, class_code: str, secti
     
     if not section_exists:
         raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST, detail="Section does not exist."
+                    status_code=status.HTTP_404_NOT_FOUND, detail="Section does not exist."
                 )   
     
     # Check to see if section exists 
@@ -614,12 +625,12 @@ def instructor_get_waitlist_for_class(instructor_id: str, class_code: str, secti
     
     if not instructor_exists:
         raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST, detail="Instructor does not exist."
+                    status_code=status.HTTP_404_NOT_FOUND, detail="Instructor does not exist."
                 )   
 
     # Get all students on the waitlist
     waitlist = db.execute("""
-                SELECT student_id, s_first_name, s_last_name, class_code, section_number
+                SELECT student_id, s_first_name, s_last_name, class_code, section_number, timestamp
                 FROM Instructor, Class, Waitlist, Student
                 WHERE Instructor.instructor_id=?
                 AND Class.class_code=?
