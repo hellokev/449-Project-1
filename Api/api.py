@@ -48,7 +48,7 @@ async def message():
 
 # ---------------------- Additional -----------------------------
 
-# Example: http://localhost:5000/all_classes
+# Example: GET http://localhost:5000/all_classes
 @app.get("/all_classes")
 def get_available_classes(db: sqlite3.Connection = Depends(get_db)):
     classes = db.execute("""
@@ -57,9 +57,9 @@ def get_available_classes(db: sqlite3.Connection = Depends(get_db)):
             """)    
     return {"classes": classes.fetchall()}
 
-# Example: http://localhost:5000/student/student_details
-@app.get("/student/student_details")
-def get_available_classes(student_id: str, db: sqlite3.Connection = Depends(get_db)):
+# Example: GET http://localhost:5000/student/student_details
+@app.get("/student_details/{student_id}")
+def get_student_details(student_id: str, db: sqlite3.Connection = Depends(get_db)):
 
     # Get student details
     student_details = db.execute("""
@@ -70,9 +70,9 @@ def get_available_classes(student_id: str, db: sqlite3.Connection = Depends(get_
 
     return {"student": student_details}
 
-# Example: http://localhost:5000/student/student_enrollment
-@app.get("/student/student_enrollment")
-def get_available_classes(student_id: str, db: sqlite3.Connection = Depends(get_db)):
+# Example: GET http://localhost:5000/student/student_enrollment
+@app.get("/student_enrollment/{student_id}")
+def get_student_enrollment(student_id: str, db: sqlite3.Connection = Depends(get_db)):
 
     # Get student details
     student_enrollment = db.execute("""
@@ -87,9 +87,9 @@ def get_available_classes(student_id: str, db: sqlite3.Connection = Depends(get_
 # ---------------------- Tasks -----------------------------
 
 # Task 1: Student can list all available classes
-# Example: http://localhost:5000/student/available_classes
+# Example: GET http://localhost:5000/student/available_classes
 @app.get("/student/available_classes")
-def get_available_classes(db: sqlite3.Connection = Depends(get_db)):
+def student_get_available_classes(db: sqlite3.Connection = Depends(get_db)):
     classes = db.execute("""
                 SELECT class_code, section_number, class_name, i_first_name, i_last_name, current_enrollment, max_enrollment
                 FROM Class, Instructor
@@ -99,9 +99,9 @@ def get_available_classes(db: sqlite3.Connection = Depends(get_db)):
     return {"classes": classes.fetchall()}
 
 # Task 2: Student can attempt to enroll in a class
-# Example: http://localhost:5000/student/enroll_in_class/?student_id=11111111&class_code=CPSC449&section_number=01
-@app.get("/student/enroll_in_class")
-def get_available_classes(student_id: str, class_code:str, section_number:str, db: sqlite3.Connection = Depends(get_db)):
+# Example: POST http://localhost:5000/student/enroll_in_class/student/11111111/class/CPSC449/section/01
+@app.post("/student/enroll_in_class/student/{student_id}/class/{class_code}/section/{section_number}")
+def student_enroll_self_in_class(student_id: str, class_code:str, section_number:str, db: sqlite3.Connection = Depends(get_db)):
     # Check to see if student already enrolled
     student_is_enrolled = db.execute("""
         SELECT *
@@ -202,9 +202,9 @@ def get_available_classes(student_id: str, class_code:str, section_number:str, d
         return {"detail": "Class enrollment full, Student added to waitlist"}
 
 # Task 3: Student can drop a class
-# Example: http://localhost:5000/student/drop_class/?student_id=11111111&class_code=CPSC449&section_number=01
-@app.get("/student/drop_class")
-def drop_class(student_id: str, class_code:str, section_number:str, db: sqlite3.Connection = Depends(get_db)):
+# Example: DELETE http://localhost:5000/student/drop_class/student/11111111/class/CPSC449/section/01
+@app.delete("/student/drop_class/student/{student_id}/class/{class_code}/section/{section_number}")
+def student_drop_self_from_class(student_id: str, class_code:str, section_number:str, db: sqlite3.Connection = Depends(get_db)):
 
     # Check to see if student already enrolled
     student_is_enrolled = db.execute("""
@@ -251,9 +251,9 @@ def drop_class(student_id: str, class_code:str, section_number:str, db: sqlite3.
 
     
 # Task 4: Instructor can view current enrollment for their classes
-# Example: GET http://localhost:5000/instructor/enrollment/?instructor_id=100
-@app.get("/instructor/enrollment")
-def drop_class(instructor_id: str, db: sqlite3.Connection = Depends(get_db)):
+# Example: GET http://localhost:5000/instructor/enrollment/instructor/100
+@app.get("/instructor/enrollment/instructor/{instructor_id}")
+def instructor_get_enrollment_for_classes(instructor_id: str, db: sqlite3.Connection = Depends(get_db)):
     enrollment = db.execute("""
         SELECT student_id, s_first_name, s_last_name, class_code, section_number, class_name
         FROM Instructor, Class, Enroll, Student
@@ -267,9 +267,9 @@ def drop_class(instructor_id: str, db: sqlite3.Connection = Depends(get_db)):
     return {"enrollment": enrollment}
 
 # Task 5: Instructor can view students who have dropped the class
-# Example: GET http://localhost:5000/instructor/enrollment/?instructor_id=100
-@app.get("/instructor/dropped")
-def drop_class(instructor_id: str,  class_code:str, section_number:str, db: sqlite3.Connection = Depends(get_db)):
+# Example: GET http://localhost:5000/instructor/dropped/instructor/100/class/CPSC449/section/01
+@app.get("/instructor/dropped/instructor/{instructor_id}/class/{class_code}/section/{section_number}")
+def instructor_get_students_that_dropped_class(instructor_id: str,  class_code:str, section_number:str, db: sqlite3.Connection = Depends(get_db)):
     dropped = db.execute("""
         SELECT student_id, s_first_name, s_last_name, class_code, section_number
         FROM Instructor, Class, Dropped, Student
@@ -285,9 +285,9 @@ def drop_class(instructor_id: str,  class_code:str, section_number:str, db: sqli
     return {"dropped": dropped}
 
 # Task 6: Instructor can drop students administratively (e.g. if they do not show up to class)
-# Example: http://localhost:5000/instructor/drop_student/?student_id=11111111&class_code=CPSC449&section_number=01
-@app.get("/instructor/drop_student")
-def drop_class(student_id: str, class_code:str, section_number:str, db: sqlite3.Connection = Depends(get_db)):
+# Example: http://localhost:5000/instructor/drop_student/student/11111111/class/CPSC449/section/01
+@app.delete("/instructor/drop_student/student/{student_id}/class/{class_code}/section/{section_number}")
+def instructor_drop_student_from_class(student_id: str, class_code:str, section_number:str, db: sqlite3.Connection = Depends(get_db)):
 
     # Check to see if student already enrolled
     student_is_enrolled = db.execute("""
@@ -347,7 +347,7 @@ def drop_class(student_id: str, class_code:str, section_number:str, db: sqlite3.
 #     "c_instructor_id": "100",
 # }
 @app.post("/registrar/new_class")
-def drop_class(new_class: Class, request: Request, db: sqlite3.Connection = Depends(get_db)):
+def registrar_create_new_class(new_class: Class, request: Request, db: sqlite3.Connection = Depends(get_db)):
 
     c = dict(new_class)
     
@@ -377,7 +377,7 @@ def drop_class(new_class: Class, request: Request, db: sqlite3.Connection = Depe
 # Task 8: Registrar can remove existing sections
 # Example: DELETE http://localhost:5000/registrar/remove_section/?class_code=CPSC449&section_number=04
 @app.delete("/registrar/class/code/{class_code}/section/{section_number}")
-def remove_section(class_code: str, section_number: str, db: sqlite3.Connection = Depends(get_db)):
+def registrar_remove_section(class_code: str, section_number: str, db: sqlite3.Connection = Depends(get_db)):
     # Check to see if section exists 
     section_exists = db.execute("""
                 SELECT *
@@ -425,7 +425,7 @@ def remove_section(class_code: str, section_number: str, db: sqlite3.Connection 
 # Task 9: Registrar can change instructor for a section
 # Example: PUT http://localhost:5000/registrar/change_instructor/class/CSPC449/section/02/new_instructor/101
 @app.put("/registrar/change_instructor/class/{class_code}/section/{section_number}/new_instructor/{instructor_id}")
-def change_instructor(class_code: str, section_number: str, instructor_id: str, db: sqlite3.Connection = Depends(get_db)):
+def registrar_change_instructor_for_class(class_code: str, section_number: str, instructor_id: str, db: sqlite3.Connection = Depends(get_db)):
 
     # Check to see if section exists 
     section_exists = db.execute("""
@@ -467,7 +467,7 @@ def change_instructor(class_code: str, section_number: str, instructor_id: str, 
 # Task 10: Freeze automatic enrollment from waiting lists (e.g. during the second week of classes)
 # Example: PUT http://localhost:5000/registrar/freeze_enrollment/class/CSPC449/section/02
 @app.put("/registrar/freeze_enrollment/class/{class_code}/section/{section_number}")
-def freeze_enrollment(class_code: str, section_number: str, db: sqlite3.Connection = Depends(get_db)):
+def registrar_freeze_enrollment_for_class(class_code: str, section_number: str, db: sqlite3.Connection = Depends(get_db)):
 
     # Check to see if section exists 
     section_exists = db.execute("""
@@ -498,7 +498,7 @@ def freeze_enrollment(class_code: str, section_number: str, db: sqlite3.Connecti
 # Task 11: Student can view their current position on the waiting list
 # Example: GET http://localhost:5000/student/waitlist_position/student/11111111/class/MATH101/section/02
 @app.get("/student/waitlist_position/student/{student_id}/class/{class_code}/section/{section_number}")
-def waitlist_position(student_id: str, class_code: str, section_number: str, db: sqlite3.Connection = Depends(get_db)):
+def student_get_waitlist_position_for_class(student_id: str, class_code: str, section_number: str, db: sqlite3.Connection = Depends(get_db)):
 
     # Check to see if student on waitlist
     student_on_waitlist = db.execute("""
@@ -541,7 +541,7 @@ def get_position_on_waitlist(dict, student_id):
 # Task 12: Student can remove themselves from a waiting list
 # Example: DELETE http://localhost:5000/student/remove_from_waitlist/student/11111111/class/MATH101/section/02
 @app.delete("/student/remove_from_waitlist/student/{student_id}/class/{class_code}/section/{section_number}")
-def remove_from_waitlist(student_id: str, class_code: str, section_number: str, db: sqlite3.Connection = Depends(get_db)):
+def student_remove_self_from_class_waitlist(student_id: str, class_code: str, section_number: str, db: sqlite3.Connection = Depends(get_db)):
 
     # Check to see if student on waitlist
     student_on_waitlist = db.execute("""
@@ -590,7 +590,7 @@ def remove_from_waitlist(student_id: str, class_code: str, section_number: str, 
 # Task 13: Instructor can view the current waiting list for their course
 # Example: GET http://localhost:5000/instructor/waitlist_for_class/instructor/{instructor_id}/class/{class_code}/section/{section_number}
 @app.get("/instructor/waitlist_for_class/instructor/{instructor_id}/class/{class_code}/section/{section_number}")
-def remove_from_waitlist(instructor_id: str, class_code: str, section_number: str, db: sqlite3.Connection = Depends(get_db)):
+def instructor_get_waitlist_for_class(instructor_id: str, class_code: str, section_number: str, db: sqlite3.Connection = Depends(get_db)):
 
     # Check to see if section exists 
     section_exists = db.execute("""
@@ -626,7 +626,7 @@ def remove_from_waitlist(instructor_id: str, class_code: str, section_number: st
                 AND Class.section_number=?
                 AND Instructor.instructor_id=Class.c_instructor_id
                 AND  Class.class_code=Waitlist.w_class_code
-                And Class.section_number=Waitlist.w_section_number
+                AND Class.section_number=Waitlist.w_section_number
                 AND Waitlist.w_student_id=student_id
             """, (instructor_id, class_code, section_number)).fetchall()
     
