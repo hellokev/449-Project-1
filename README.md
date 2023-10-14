@@ -1,20 +1,23 @@
+# 449-project-1
 
-**1. Clone the repository using the following command:**
-   ```
-   git clone https://github.com/webdevlex/449-Project-1.git
-   ```
+**1. Install dependencies**
+```
+sudo apt update
+```
+```
+sudo apt install --yes ruby-foreman
+```
+```
+python -m pip install 'fastapi[all]'
+```
 
-**2. Open the terminal in the /Api folder:**
-   ```
-   cd 449-Project-1/Api
-   ```
 
-**3. Start the Python virtual environment:**
-   ```
-   . .venv/bin/activate
-   ```
+**2. Populate the database with sample data, from within the `api` folder run:**
+```
+./bin/init.sh
+```
 
-**4. Run the application using Foreman:**
-   ```
-   foreman start
-   ```
+**3. Start the api**
+```
+foreman start
+```
